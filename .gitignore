@@ -9,6 +9,9 @@ venv/
 # FastF1 cache
 /fastf1_cache/
 
+# Individual year CSVs (large) — only commit the combined file
+data/historical/japan_gp_20[0-9][0-9].csv
+
 # Model artifacts
 data/xgb_suzuka.pkl
 

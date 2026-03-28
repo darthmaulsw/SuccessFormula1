@@ -37,6 +37,9 @@ image = (
         "numpy==1.26.4",
         "joblib==1.4.2",
     )
+    # Copy pre-fetched CSVs into the container image so Modal doesn't need
+    # to hit the FastF1 network during training
+    .add_local_dir("data/historical", remote_path="/data/historical", condition=lambda p: p.suffix == ".csv")
 )
 
 # ---------------------------------------------------------------------------
@@ -44,12 +47,20 @@ image = (
 # ---------------------------------------------------------------------------
 
 SUZUKA_LAPS = 53
+# All available Suzuka years (2020 cancelled, 2007-2008 held at Fuji)
 TRAINING_SESSIONS = [
+    (2015, "Japan", "R"),
+    (2016, "Japan", "R"),
+    (2017, "Japan", "R"),
+    (2018, "Japan", "R"),
     (2019, "Japan", "R"),
+    (2021, "Japan", "R"),
     (2022, "Japan", "R"),
     (2023, "Japan", "R"),
     (2024, "Japan", "R"),
 ]
+# Path to pre-cached CSVs from scripts/fetch_historical_data.py
+COMBINED_CSV = Path("data/historical/japan_gp_combined.csv")
 
 
 def engineer_features(session) -> pd.DataFrame:
@@ -98,6 +109,22 @@ def engineer_features(session) -> pd.DataFrame:
 def load_all_sessions() -> pd.DataFrame:
     import fastf1
 
+    # Prefer pre-cached combined CSV (faster, no network needed on Modal)
+    if COMBINED_CSV.exists():
+        print(f"Loading pre-cached data from {COMBINED_CSV}...")
+        df = pd.read_csv(COMBINED_CSV)
+        print(f"  → {len(df)} lap rows across years: {sorted(df['year'].unique())}")
+        return df[FEATURE_COLUMNS + ["won"]].dropna()
+
+    # Upload individual CSVs if they exist
+    individual = sorted(Path("data/historical").glob("japan_gp_[0-9]*.csv"))
+    if individual:
+        print(f"Loading {len(individual)} individual year CSVs...")
+        df = pd.concat([pd.read_csv(f) for f in individual], ignore_index=True)
+        return df[FEATURE_COLUMNS + ["won"]].dropna()
+
+    # Fallback: fetch live from FastF1 (slow on first run)
+    print("No cached CSVs found — fetching from FastF1 (this may take a while)...")
     cache_dir = Path("/tmp/fastf1_cache")
     cache_dir.mkdir(exist_ok=True)
     fastf1.Cache.enable_cache(str(cache_dir))

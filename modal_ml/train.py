@@ -49,9 +49,6 @@ image = (
 SUZUKA_LAPS = 53
 # All available Suzuka years (2020 cancelled, 2007-2008 held at Fuji)
 TRAINING_SESSIONS = [
-    (2015, "Japan", "R"),
-    (2016, "Japan", "R"),
-    (2017, "Japan", "R"),
     (2018, "Japan", "R"),
     (2019, "Japan", "R"),
     (2021, "Japan", "R"),
@@ -82,11 +79,15 @@ def engineer_features(session) -> pd.DataFrame:
     total_laps = laps["LapNumber"].max()
     laps["laps_remaining"] = total_laps - laps["LapNumber"]
     laps["position"] = laps["Position"].ffill().fillna(20).astype(int)
-    laps["gap_to_leader"] = (
-        laps["GapToLeader"]
-        .apply(lambda x: x.total_seconds() if pd.notna(x) and hasattr(x, "total_seconds") else 0.0)
-        .fillna(0.0)
+
+    # Compute gap to leader from session time (GapToLeader not always present)
+    laps["_time_s"] = laps["Time"].apply(
+        lambda x: x.total_seconds() if pd.notna(x) and hasattr(x, "total_seconds") else None
     )
+    leader_time = laps.groupby("LapNumber")["_time_s"].min().rename("_leader_time")
+    laps = laps.join(leader_time, on="LapNumber")
+    laps["gap_to_leader"] = (laps["_time_s"] - laps["_leader_time"]).clip(lower=0).fillna(0.0)
+    laps = laps.drop(columns=["_time_s", "_leader_time"])
     laps["safety_car"] = 0
     laps["vsc"] = 0
     laps["radio_sentiment"] = 0.0

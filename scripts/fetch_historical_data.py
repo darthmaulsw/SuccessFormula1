@@ -19,8 +19,9 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 import pandas as pd
 from pathlib import Path
 
-# Japan GP years at Suzuka (skip 2020 — cancelled)
-DEFAULT_YEARS = [2015, 2016, 2017, 2018, 2019, 2021, 2022, 2023, 2024]
+# Japan GP years at Suzuka supported by FastF1 3.x (data starts 2018)
+# 2020 cancelled (COVID), 2015-2017 not supported by FastF1 timing API
+DEFAULT_YEARS = [2018, 2019, 2021, 2022, 2023, 2024]
 
 CACHE_DIR = Path("fastf1_cache")
 OUTPUT_DIR = Path("data/historical")
@@ -48,11 +49,15 @@ def engineer_features(session, year: int) -> pd.DataFrame:
     laps["laps_remaining"] = total_laps - laps["LapNumber"]
     laps["position"] = laps["Position"].ffill().fillna(20).astype(int)
 
-    laps["gap_to_leader"] = (
-        laps["GapToLeader"]
-        .apply(lambda x: x.total_seconds() if pd.notna(x) and hasattr(x, "total_seconds") else 0.0)
-        .fillna(0.0)
+    # Compute gap to leader from session time (Time = session time at lap end)
+    # Leader at each lap number = driver with lowest session Time for that lap
+    laps["_time_s"] = laps["Time"].apply(
+        lambda x: x.total_seconds() if pd.notna(x) and hasattr(x, "total_seconds") else None
     )
+    leader_time = laps.groupby("LapNumber")["_time_s"].min().rename("_leader_time")
+    laps = laps.join(leader_time, on="LapNumber")
+    laps["gap_to_leader"] = (laps["_time_s"] - laps["_leader_time"]).clip(lower=0).fillna(0.0)
+    laps = laps.drop(columns=["_time_s", "_leader_time"])
 
     # Safety car from track status
     laps["safety_car"] = 0
@@ -165,4 +170,6 @@ def main():
 
 
 if __name__ == "__main__":
+    import sys
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     main()

@@ -1,0 +1,52 @@
+[
+  {
+    "lap": 1, "safety_car": false, "vsc": false,
+    "drivers": [
+      {"driver_number":1,"name":"Verstappen","team":"Red Bull","team_color":"#3671C6","position":1,"win_probability":0.48,"polymarket_probability":0.42,"edge":0.06,"tire_compound":"SOFT","tire_age":1,"pit_stops":0,"last_insight":"Verstappen leads from pole, strong gap into Turn 1.","last_radio":"","radio_sentiment":0.0,"radio_keywords":[]},
+      {"driver_number":4,"name":"Norris","team":"McLaren","team_color":"#FF8000","position":2,"win_probability":0.20,"polymarket_probability":0.18,"edge":0.02,"tire_compound":"SOFT","tire_age":1,"pit_stops":0,"last_insight":"Norris holds P2, within DRS range of the leader.","last_radio":"","radio_sentiment":0.0,"radio_keywords":[]},
+      {"driver_number":16,"name":"Leclerc","team":"Ferrari","team_color":"#E8002D","position":3,"win_probability":0.14,"polymarket_probability":0.14,"edge":0.00,"tire_compound":"SOFT","tire_age":1,"pit_stops":0,"last_insight":"Leclerc on the alternate strategy, started P3.","last_radio":"","radio_sentiment":0.0,"radio_keywords":[]},
+      {"driver_number":44,"name":"Hamilton","team":"Mercedes","team_color":"#27F4D2","position":4,"win_probability":0.08,"polymarket_probability":0.08,"edge":0.00,"tire_compound":"MEDIUM","tire_age":1,"pit_stops":0,"last_insight":"Hamilton on mediums — hoping for a longer first stint.","last_radio":"","radio_sentiment":0.0,"radio_keywords":[]},
+      {"driver_number":81,"name":"Piastri","team":"McLaren","team_color":"#FF8000","position":5,"win_probability":0.10,"polymarket_probability":0.07,"edge":0.03,"tire_compound":"SOFT","tire_age":1,"pit_stops":0,"last_insight":"Piastri undervalued by the market — strong qualifying pace.","last_radio":"","radio_sentiment":0.0,"radio_keywords":[]}
+    ]
+  },
+  {
+    "lap": 5, "safety_car": false, "vsc": false,
+    "drivers": [
+      {"driver_number":1,"name":"Verstappen","team":"Red Bull","team_color":"#3671C6","position":1,"win_probability":0.51,"polymarket_probability":0.45,"edge":0.06,"tire_compound":"SOFT","tire_age":5,"pit_stops":0,"last_insight":"Verstappen extending his lead — gap now 3.2s to Norris.","last_radio":"Tires feel good, pushing.","radio_sentiment":0.6,"radio_keywords":[]},
+      {"driver_number":4,"name":"Norris","team":"McLaren","team_color":"#FF8000","position":2,"win_probability":0.19,"polymarket_probability":0.19,"edge":0.00,"tire_compound":"SOFT","tire_age":5,"pit_stops":0,"last_insight":"Norris managing tire deg carefully through the esses.","last_radio":"","radio_sentiment":0.0,"radio_keywords":[]},
+      {"driver_number":16,"name":"Leclerc","team":"Ferrari","team_color":"#E8002D","position":3,"win_probability":0.13,"polymarket_probability":0.13,"edge":0.00,"tire_compound":"SOFT","tire_age":5,"pit_stops":0,"last_insight":"Leclerc close to Norris — battle incoming.","last_radio":"","radio_sentiment":0.0,"radio_keywords":[]},
+      {"driver_number":81,"name":"Piastri","team":"McLaren","team_color":"#FF8000","position":4,"win_probability":0.11,"polymarket_probability":0.07,"edge":0.04,"tire_compound":"SOFT","tire_age":5,"pit_stops":0,"last_insight":"Piastri closing the gap — edge vs market widens.","last_radio":"","radio_sentiment":0.0,"radio_keywords":[]},
+      {"driver_number":44,"name":"Hamilton","team":"Mercedes","team_color":"#27F4D2","position":5,"win_probability":0.06,"polymarket_probability":0.08,"edge":-0.02,"tire_compound":"MEDIUM","tire_age":5,"pit_stops":0,"last_insight":"Hamilton losing ground on mediums — model doubts recovery.","last_radio":"","radio_sentiment":0.0,"radio_keywords":[]}
+    ]
+  },
+  {
+    "lap": 15, "safety_car": true, "vsc": false,
+    "drivers": [
+      {"driver_number":1,"name":"Verstappen","team":"Red Bull","team_color":"#3671C6","position":1,"win_probability":0.38,"polymarket_probability":0.44,"edge":-0.06,"tire_compound":"SOFT","tire_age":15,"pit_stops":0,"last_insight":"Safety car bunches the field — Verstappen's lead erased, market still favors him.","last_radio":"Stay out, stay out.","radio_sentiment":-0.1,"radio_keywords":["SC"]},
+      {"driver_number":4,"name":"Norris","team":"McLaren","team_color":"#FF8000","position":2,"win_probability":0.28,"polymarket_probability":0.20,"edge":0.08,"tire_compound":"SOFT","tire_age":15,"pit_stops":0,"last_insight":"SC neutralises Norris's deficit — best pit window opening now.","last_radio":"Box, box, box.","radio_sentiment":0.0,"radio_keywords":["PIT","SC"]},
+      {"driver_number":81,"name":"Piastri","team":"McLaren","team_color":"#FF8000","position":3,"win_probability":0.18,"polymarket_probability":0.09,"edge":0.09,"tire_compound":"SOFT","tire_age":15,"pit_stops":0,"last_insight":"Piastri SC beneficiary — massive model edge vs market odds.","last_radio":"","radio_sentiment":0.0,"radio_keywords":["SC"]},
+      {"driver_number":16,"name":"Leclerc","team":"Ferrari","team_color":"#E8002D","position":4,"win_probability":0.10,"polymarket_probability":0.13,"edge":-0.03,"tire_compound":"MEDIUM","tire_age":3,"pit_stops":1,"last_insight":"Leclerc pitted before SC — lost time, now P4 on fresher tires.","last_radio":"","radio_sentiment":0.0,"radio_keywords":[]},
+      {"driver_number":44,"name":"Hamilton","team":"Mercedes","team_color":"#27F4D2","position":5,"win_probability":0.06,"polymarket_probability":0.07,"edge":-0.01,"tire_compound":"MEDIUM","tire_age":15,"pit_stops":0,"last_insight":"Hamilton needs to pit under SC — window closing fast.","last_radio":"Can we pit? Can we pit?","radio_sentiment":-0.3,"radio_keywords":["PIT"]}
+    ]
+  },
+  {
+    "lap": 30, "safety_car": false, "vsc": false,
+    "drivers": [
+      {"driver_number":4,"name":"Norris","team":"McLaren","team_color":"#FF8000","position":1,"win_probability":0.35,"polymarket_probability":0.28,"edge":0.07,"tire_compound":"MEDIUM","tire_age":12,"pit_stops":1,"last_insight":"Norris leads after SC pit cycle — on fresh mediums with strong pace.","last_radio":"This is my race to lose.","radio_sentiment":0.8,"radio_keywords":[]},
+      {"driver_number":1,"name":"Verstappen","team":"Red Bull","team_color":"#3671C6","position":2,"win_probability":0.32,"polymarket_probability":0.40,"edge":-0.08,"tire_compound":"HARD","tire_age":14,"pit_stops":1,"last_insight":"Verstappen P2 but market overrates him — tire deg visible in sector 2.","last_radio":"Tires are going off.","radio_sentiment":-0.4,"radio_keywords":["TIRE"]},
+      {"driver_number":81,"name":"Piastri","team":"McLaren","team_color":"#FF8000","position":3,"win_probability":0.20,"polymarket_probability":0.11,"edge":0.09,"tire_compound":"MEDIUM","tire_age":12,"pit_stops":1,"last_insight":"Piastri in P3, biggest model-vs-market edge on the board.","last_radio":"","radio_sentiment":0.0,"radio_keywords":[]},
+      {"driver_number":16,"name":"Leclerc","team":"Ferrari","team_color":"#E8002D","position":4,"win_probability":0.08,"polymarket_probability":0.12,"edge":-0.04,"tire_compound":"HARD","tire_age":18,"pit_stops":1,"last_insight":"Leclerc needs a second stop — HARD tires past prime.","last_radio":"I need new tires.","radio_sentiment":-0.6,"radio_keywords":["TIRE","ISSUE"]},
+      {"driver_number":44,"name":"Hamilton","team":"Mercedes","team_color":"#27F4D2","position":5,"win_probability":0.05,"polymarket_probability":0.06,"edge":-0.01,"tire_compound":"HARD","tire_age":14,"pit_stops":1,"last_insight":"Hamilton managing to the end — no pace for a podium challenge.","last_radio":"","radio_sentiment":0.0,"radio_keywords":[]}
+    ]
+  },
+  {
+    "lap": 45, "safety_car": false, "vsc": false,
+    "drivers": [
+      {"driver_number":4,"name":"Norris","team":"McLaren","team_color":"#FF8000","position":1,"win_probability":0.52,"polymarket_probability":0.38,"edge":0.14,"tire_compound":"HARD","tire_age":15,"pit_stops":2,"last_insight":"Norris 4s clear with 8 laps left — model strongly disagrees with cautious market.","last_radio":"Feeling strong, this is ours.","radio_sentiment":0.9,"radio_keywords":[]},
+      {"driver_number":1,"name":"Verstappen","team":"Red Bull","team_color":"#3671C6","position":2,"win_probability":0.28,"polymarket_probability":0.42,"edge":-0.14,"tire_compound":"HARD","tire_age":29,"pit_stops":1,"last_insight":"Verstappen one-stopping but tires are 29 laps old — model sees the risk.","last_radio":"These tires are done.","radio_sentiment":-0.7,"radio_keywords":["TIRE","ISSUE"]},
+      {"driver_number":81,"name":"Piastri","team":"McLaren","team_color":"#FF8000","position":3,"win_probability":0.15,"polymarket_probability":0.10,"edge":0.05,"tire_compound":"HARD","tire_age":15,"pit_stops":2,"last_insight":"Piastri in P3, hunting Verstappen as his tires fade.","last_radio":"","radio_sentiment":0.0,"radio_keywords":[]},
+      {"driver_number":16,"name":"Leclerc","team":"Ferrari","team_color":"#E8002D","position":4,"win_probability":0.04,"polymarket_probability":0.07,"edge":-0.03,"tire_compound":"SOFT","tire_age":5,"pit_stops":2,"last_insight":"Leclerc on fresh softs for fastest lap attempt — unlikely to threaten podium.","last_radio":"","radio_sentiment":0.0,"radio_keywords":[]},
+      {"driver_number":44,"name":"Hamilton","team":"Mercedes","team_color":"#27F4D2","position":5,"win_probability":0.01,"polymarket_probability":0.03,"edge":-0.02,"tire_compound":"HARD","tire_age":29,"pit_stops":1,"last_insight":"Hamilton in damage-limitation mode — P5 the realistic ceiling.","last_radio":"","radio_sentiment":0.0,"radio_keywords":[]}
+    ]
+  }
+]

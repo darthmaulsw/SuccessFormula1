@@ -1,0 +1,33 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+body {
+  background-color: #0F0F0F;
+  color: #F0F0F0;
+  font-family: 'JetBrains Mono', monospace;
+  margin: 0;
+}
+
+/* Probability bar transition */
+.prob-bar {
+  transition: width 0.8s ease-in-out;
+}
+
+/* Live pulse animation */
+@keyframes pulse-red {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+.live-pulse {
+  animation: pulse-red 1.5s ease-in-out infinite;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: #1A1A1A; }
+::-webkit-scrollbar-thumb { background: #E8002D; border-radius: 2px; }

@@ -1,0 +1,390 @@
+# SuccessFormula1 — 24-Hour Hackathon Build Plan
+# YHack 2026 | Start: 3:00 PM Saturday | Race: 1:00 AM Sunday ET | Demo: ~9:00 AM Sunday
+
+==============================================================================
+CONTEXT
+==============================================================================
+
+SuccessFormula1 is a real-time F1 race prediction dashboard targeting four
+YHack prize tracks: Polymarket, K2 Think V2, Best UI/UX, and Most Creative.
+The Japanese GP at Suzuka starts at 1 AM ET — the system must be fully live
+and demo-ready before the race starts. Two people, 10 hours to pre-race,
+~8 more hours to polish and demo. The repo is currently empty.
+
+==============================================================================
+🚨 3 CRITICAL PATH ITEMS THAT COULD KILL THE PROJECT
+==============================================================================
+
+1. MODAL INFERENCE ENDPOINT LATENCY / SETUP FAILURES
+   Why: Every live prediction depends on Modal. Cold starts or auth failures
+        kill the entire ML pipeline.
+   De-risk: Start Modal setup in the first 30 minutes. Train model locally
+            first, THEN migrate to Modal. Use @modal.web_endpoint. Keep a
+            local fallback pickle for FastAPI to load directly.
+
+2. OPENF1 LIVE DATA AVAILABILITY DURING RACE
+   Why: OpenF1 may lag, rate-limit, or have gaps. Need fresh lap data ~90s.
+   De-risk: Pre-test all endpoints tonight before the race. Cache last-known
+            state so frontend never goes blank. Build DEMO_MODE that replays
+            pre-recorded 2024 Suzuka JSON if API goes cold.
+
+3. K2 THINK V2 API ACCESS / LATENCY
+   Why: K2 is a prize track — broken integration = lost prize track.
+   De-risk: Test API credentials in first hour. K2 calls must be async,
+            fire-and-forget. Fall back to templated strings if K2 is down.
+
+==============================================================================
+TECH STACK
+==============================================================================
+
+Layer             | Technology                    | Why
+------------------|-------------------------------|---------------------------
+Backend           | Python FastAPI + uvicorn      | Fast to build, async SSE
+ML Training       | scikit-learn XGBoost + Modal  | Trains in minutes
+ML Serving        | Modal @modal.web_endpoint     | Zero-infra inference
+Live Data         | OpenF1 REST API               | Free, no auth
+Historical Data   | FastF1                        | Battle-tested Suzuka data
+Radio NLP         | Faster-Whisper + VADER        | tiny model, no GPU needed
+LLM Insights      | K2 Think V2 70B               | Prize track requirement
+Polymarket        | Gamma API (REST)              | Live odds, no WS needed
+Frontend          | React + Vite + TailwindCSS    | Fast scaffold
+Charts            | Recharts                      | Animated bar charts
+Real-time         | Server-Sent Events (SSE)      | Simpler than WebSocket
+
+==============================================================================
+REPOSITORY STRUCTURE
+==============================================================================
+
+SuccessFormula1/
+├── backend/
+│   ├── main.py              # FastAPI app, SSE endpoint, orchestration
+│   ├── openf1_client.py     # Live data polling
+│   ├── polymarket_client.py # Gamma API odds fetching
+│   ├── radio_processor.py   # Whisper + VADER pipeline
+│   ├── k2_client.py         # K2 Think V2 async client
+│   └── state.py             # In-memory race state
+├── modal_ml/
+│   ├── train.py             # FastF1 fetch + XGBoost training on Modal
+│   ├── inference.py         # Modal web endpoint for predictions
+│   └── features.py          # Shared feature engineering
+├── frontend/
+│   ├── src/
+│   │   ├── App.jsx
+│   │   ├── components/
+│   │   │   ├── DriverCard.jsx     # Per-driver probability bar
+│   │   │   ├── RadioFeed.jsx      # Live transcript stream
+│   │   │   ├── EdgeIndicator.jsx  # Model vs Polymarket delta
+│   │   │   ├── InsightBubble.jsx  # K2 natural language insight
+│   │   │   └── LapTicker.jsx      # Current lap / safety car status
+│   │   └── hooks/useSSE.js        # SSE connection hook
+│   └── package.json
+├── data/
+│   └── suzuka_replay_2024.json    # Fallback demo data
+└── requirements.txt
+
+==============================================================================
+HOUR-BY-HOUR PLAN
+==============================================================================
+
+--- PHASE 1: Foundation (3:00 PM – 6:00 PM) — Race -10h ---
+
+3:00 PM – 4:00 PM | SETUP HOUR
+
+  PERSON A (ML/Backend):
+  - git init, push repo skeleton, share with Person B
+  - pip install fastf1 xgboost scikit-learn modal faster-whisper
+            vaderSentiment fastapi uvicorn
+  - Run `modal setup` and `modal token new` — GET THIS WORKING NOW
+  - Write modal_ml/features.py: define feature vector
+    (position, gap_to_leader, tire_age, tire_compound, pit_stops_done,
+     laps_remaining, safety_car_flag, radio_sentiment_score)
+  - Deliverable: Modal auth confirmed, feature schema defined
+  - Risk: Modal quota / auth issues
+  - Fallback: Skip Modal, serve inference from local FastAPI directly
+
+  PERSON B (Frontend):
+  - npm create vite@latest frontend -- --template react
+  - Install Tailwind + Recharts
+  - Build static mockup: 5 driver cards, probability bars, layout
+  - Create useSSE.js hook connecting to http://localhost:8000/stream
+  - Deliverable: Static frontend running at localhost:5173 with fake data
+
+---
+
+4:00 PM – 5:00 PM | DATA + MODEL
+
+  PERSON A:
+  - Write modal_ml/train.py:
+    - Load FastF1 sessions: Suzuka 2019, 2022, 2023, 2024 (Race)
+    - Extract per-lap features: position, gap, tire age, compound,
+      pit count, laps remaining
+    - Label: did driver finish P1? (binary classification)
+    - Train XGBoost classifier, log accuracy
+    - Save model to Modal volume /model/xgb_suzuka.pkl
+  - Run training locally first to confirm it works
+  - Deliverable: Trained model artifact, feature pipeline tested
+  - Risk: FastF1 cache cold (slow download on first run)
+  - Fallback: Use only 2022+2024 data; use Monaco/Silverstone if needed
+
+  PERSON B:
+  - Wire useSSE.js into App.jsx, replace hardcoded data with SSE state
+  - Build DriverCard.jsx: animated probability bar, driver name,
+    team color, current position, Polymarket edge badge
+  - Deliverable: Frontend updates reactively when SSE state changes
+
+---
+
+5:00 PM – 6:00 PM | MODAL DEPLOY + BACKEND SKELETON
+
+  PERSON A:
+  - Write modal_ml/inference.py:
+      @app.function(volumes={"/model": model_vol})
+      @modal.web_endpoint(method="POST")
+      def predict(features: dict) -> dict:
+          # load model, return {driver_id: win_prob}
+  - Deploy: modal deploy modal_ml/inference.py
+  - Test with curl, confirm JSON response with driver probabilities
+  - Write backend/main.py skeleton: FastAPI app with /stream SSE
+    endpoint sending mock data every 5 seconds
+  - Deliverable: Modal endpoint live at *.modal.run/predict
+  - Risk: Modal cold start >10s
+  - Fallback: Use `modal serve` (hot reload); set keep_warm=1
+
+  PERSON B:
+  - Connect frontend SSE to running backend, confirm live updates
+  - Build RadioFeed.jsx: scrolling transcripts, driver name, timestamp,
+    keyword badges (PIT, TIRE, SC, ISSUE)
+  - Deliverable: Full frontend skeleton connected to backend SSE
+
+---
+
+--- PHASE 2: Live Data Pipeline (6:00 PM – 9:00 PM) — Race -7h ---
+
+6:00 PM – 7:00 PM | OPENF1 INTEGRATION
+
+  PERSON A:
+  - Write backend/openf1_client.py:
+    - GET /v1/laps?session_key=latest       → lap times per driver
+    - GET /v1/position?session_key=latest   → current positions
+    - GET /v1/stints?session_key=latest     → tire compound + age
+    - GET /v1/pit?session_key=latest        → pit stop count
+    - GET /v1/race_control?session_key=latest → safety car / VSC
+    - Poll interval: 20 seconds
+    - Cache last-known state for null responses
+  - Verify against most recent completed F1 session
+  - Deliverable: openf1_client.py returning clean structured data
+  - Risk: OpenF1 returns 429 or stale session key
+  - Fallback: Hardcode recent session key; exponential backoff
+
+  PERSON B:
+  - Build EdgeIndicator.jsx: model_prob vs polymarket_prob delta,
+    green chip = model higher, red chip = model lower
+  - Write backend/polymarket_client.py:
+    - GET https://gamma-api.polymarket.com/markets?slug=f1-japanese-gp-2026
+    - Normalize per-driver implied probabilities to sum 1.0
+  - Deliverable: Polymarket odds flowing into backend, displayed in UI
+
+---
+
+7:00 PM – 8:00 PM | RADIO PIPELINE
+
+  PERSON A:
+  - Write backend/radio_processor.py:
+    - GET /v1/team_radio?session_key=latest → recording_url, driver, date
+    - Download audio, transcribe with Faster-Whisper (model="tiny.en")
+    - Keyword extraction: ["pit","tire","tyre","box","safety car",
+                           "damage","brake","engine"]
+    - VADER sentiment score on transcript
+    - Return {driver_number, transcript, keywords, sentiment, timestamp}
+    - Cache processed clip URLs to avoid re-transcribing
+  - Deliverable: Radio pipeline < 5s per clip end-to-end
+  - Risk: Audio clips unavailable or heavily delayed
+  - Fallback: Skip Whisper, use OpenF1 text radio messages if available
+
+  PERSON B:
+  - Wire radio data into RadioFeed component with real OpenF1 data
+  - Add keyword badge coloring: red=issue, yellow=tire/pit, blue=SC
+  - Build InsightBubble.jsx: driver insight card, placeholder "Analyzing..."
+  - Deliverable: Radio feed showing real transcripts with visual highlights
+
+---
+
+8:00 PM – 9:00 PM | K2 + FULL PIPELINE INTEGRATION
+
+  PERSON A:
+  - Write backend/k2_client.py:
+      async def get_insight(driver, prob_delta, transcript, lap) -> str:
+          prompt = f"In one sentence, explain why {driver}'s win probability
+                     changed by {prob_delta:.0%} on lap {lap}. Context: ..."
+          # POST to K2 Think V2 API, return insight string
+    - Async, fire-and-forget — never block the lap cycle
+    - Cache insight per driver per lap
+  - Wire full pipeline in main.py:
+      1. Poll OpenF1 every 20s
+      2. Build feature vector
+      3. POST to Modal inference endpoint
+      4. Fetch Polymarket odds
+      5. Async: process radio clips, call K2 for >3% prob change drivers
+      6. Broadcast updated state via SSE
+  - Deliverable: Full end-to-end pipeline running
+  - Risk: K2 latency with 70B model
+  - Fallback: Pre-generate K2 insights; template string if API down
+
+  PERSON B:
+  - Wire K2 insights into InsightBubble.jsx
+  - Full frontend integration pass: confirm all 5 components populate
+    with real data end-to-end
+  - Deliverable: Complete UI rendering live data
+
+---
+
+--- PHASE 3: Polish + Resilience (9:00 PM – 12:00 AM) ---
+
+9:00 PM – 10:00 PM | DEMO MODE + FALLBACK DATA
+
+  PERSON A:
+  - Record full replay JSON of 2024 Suzuka race using FastF1
+    (lap-by-lap state snapshots) → data/suzuka_replay_2024.json
+  - Add DEMO_MODE=true env var: backend cycles through replay JSON
+    instead of hitting OpenF1
+  - Deliverable: Demo mode cycling through 10+ laps, realistic
+    probability changes visible
+
+  PERSON B:
+  - UI polish for Best UI/UX prize:
+    - Dark F1 theme (red/black/white)
+    - Smooth probability bar animations (CSS transitions 0.8s ease)
+    - Driver team color accents on cards
+    - Responsive layout (good on projector)
+    - Header: "LIVE | Japanese GP | Lap X/53 | 🔴 SAFETY CAR" ticker
+  - Deliverable: UI looks professional and distinctive
+
+---
+
+10:00 PM – 11:00 PM | END-TO-END STRESS TEST
+
+  BOTH:
+  - Run full system in demo mode for 20 minutes, simulate 10-lap race
+  - Check: SSE reconnects if backend restarts? (Add auto-reconnect)
+  - Check: Modal cold start handled? (Add 10s timeout + local fallback)
+  - Check: Polymarket returns no market? (Hardcode fallback odds)
+  - Check: K2 rate-limited? (Queue with 5s delay between calls)
+  - Fix top 3 breakages found
+  - Deliverable: System survives 20 min continuous operation
+
+---
+
+11:00 PM – 12:00 AM | PRE-RACE SWITCH TO LIVE
+
+  PERSON A:
+  - Switch OpenF1 to tonight's session key
+    (GET /v1/sessions?year=2026&country_name=Japan)
+  - Confirm Polymarket has live Japanese GP 2026 market
+  - Start backend, confirm probabilities appear with pre-race grid data
+  - Set Modal keep_warm=1 to prevent cold start at race start
+
+  PERSON B:
+  - Add pulsing "LIVE" badge when receiving SSE updates
+  - Write 2-minute demo script:
+      1. Probability bars updating each lap
+      2. Click radio feed entry → transcript + sentiment
+      3. Edge indicator: model disagrees with Polymarket
+      4. K2 insight updating in real time
+  - Deliverable: Demo script rehearsed, UI live on real pre-race data
+
+---
+
+--- PHASE 4: Race + Demo (12:00 AM – 9:00 AM) ---
+
+12:00 AM – 1:00 AM: Final prep, system monitor, fix any last breaks
+1:00 AM – 5:00 AM: LIVE RACE — system runs all 53 laps, capture
+                   highlight moments (safety car, probability swings)
+5:00 AM – 9:00 AM: Demo prep, export highlights, sleep in shifts
+
+==============================================================================
+FEATURE VECTOR FOR XGBOOST MODEL
+==============================================================================
+
+features = {
+    "position":            int,    # current race position (1-20)
+    "gap_to_leader":       float,  # seconds behind leader
+    "tire_age":            int,    # laps on current set
+    "tire_compound":       int,    # 0=soft 1=medium 2=hard 3=inter 4=wet
+    "pit_stops":           int,    # number of pit stops taken
+    "laps_remaining":      int,    # 53 - current_lap
+    "safety_car":          int,    # 0/1 flag
+    "vsc":                 int,    # 0/1 flag
+    "radio_sentiment":     float,  # VADER compound score [-1, 1]
+    "radio_pit_keyword":   int,    # 1 if pit/box in last 2 laps
+    "position_change_3lap":int,    # positions gained/lost in 3 laps
+    "gap_delta_3lap":      float,  # gap change last 3 laps (neg=gaining)
+}
+
+==============================================================================
+SSE PAYLOAD SCHEMA (/stream)
+==============================================================================
+
+{
+  "lap": 22,
+  "safety_car": false,
+  "timestamp": "2026-03-30T05:22:00Z",
+  "drivers": [
+    {
+      "driver_number": 1,
+      "name": "Verstappen",
+      "team": "Red Bull",
+      "position": 1,
+      "win_probability": 0.58,
+      "polymarket_probability": 0.52,
+      "edge": 0.06,
+      "tire_compound": "MEDIUM",
+      "tire_age": 14,
+      "pit_stops": 1,
+      "last_insight": "Verstappen extended lead by 2s after Norris pitted.",
+      "last_radio": "Tires feel good, we can push",
+      "radio_sentiment": 0.72,
+      "radio_keywords": []
+    }
+  ]
+}
+
+==============================================================================
+PRIZE TRACK CHECKLIST
+==============================================================================
+
+Polymarket:    Show edge indicator with live delta; ideally a moment where
+               model was right and market was wrong
+K2 Think V2:   InsightBubble showing real K2 outputs; K2 code visible in repo
+Best UI/UX:    Dark F1 theme, animations, clean layout, readable on projector
+Most Creative: Radio → Whisper → VADER → ML features pipeline; real-time NLP
+               feeding race predictions is the creative hook
+
+==============================================================================
+FILES TO CREATE (IN ORDER)
+==============================================================================
+
+1.  requirements.txt
+2.  modal_ml/features.py
+3.  modal_ml/train.py
+4.  modal_ml/inference.py
+5.  backend/state.py
+6.  backend/openf1_client.py
+7.  backend/polymarket_client.py
+8.  backend/radio_processor.py
+9.  backend/k2_client.py
+10. backend/main.py
+11. frontend/ (Vite scaffold + components)
+12. data/suzuka_replay_2024.json
+
+==============================================================================
+EMERGENCY CUTS (apply in order if time collapses at 11 PM)
+==============================================================================
+
+1. Drop Faster-Whisper → use OpenF1 text radio or skip radio entirely
+2. Drop K2 → replace with templated insight strings, keep the UI component
+3. Drop Modal → run XGBoost inference locally in FastAPI directly
+4. Drop live Polymarket → hardcode pre-race odds, edge UI still works
+5. Drop live OpenF1 → switch entirely to demo mode replay
+
+MINIMUM DEMOABLE PRODUCT (~4 hours from scratch):
+React frontend + FastAPI backend + XGBoost predictions + demo mode replay
